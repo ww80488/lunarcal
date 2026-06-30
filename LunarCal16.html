@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Luna Cal">
+<title>Chinese Lunar Calendar</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+html{height:-webkit-fill-available}
+body{font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f4f6f9;color:#2c3e50;padding:10px;padding-top:max(10px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom));padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));font-size:14px;-webkit-text-size-adjust:100%}
+.container{max-width:480px;margin:0 auto}
+.header{text-align:center;padding:10px 0 8px}
+.header h1{font-size:19px;color:#b03a2e;line-height:1.3}
+.header h1 small{display:block;font-size:11px;color:#999;font-weight:normal;margin-top:2px}
+.toggle-bar{display:flex;gap:8px;margin-bottom:12px}
+.toggle-bar button{flex:1;padding:10px 6px;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:bold;line-height:1.4;-webkit-appearance:none}
+.btn-conv{background:#e8f4fd;color:#2980b9}
+.btn-conv.active{background:#2980b9;color:#fff}
+.btn-cal{background:#fef0ed;color:#b03a2e}
+.btn-cal.active{background:#b03a2e;color:#fff}
+.panel{background:#fff;border-radius:14px;padding:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:14px}
+.conv-title{font-size:15px;color:#b03a2e;font-weight:bold;text-align:center;margin-bottom:12px}
+.conv-row{display:flex;align-items:center;gap:2px;margin-bottom:10px;width:100%}
+.conv-row .lbl{font-size:10px;color:#fff;background:#2980b9;white-space:nowrap;font-weight:bold;padding:6px 5px;border-radius:8px;flex-shrink:0;text-align:center;min-width:48px;line-height:1.3}
+.conv-row .lbl.lunar-lbl{background:#8e44ad}
+.conv-row .sel-wrap{flex:1;min-width:0;margin:0 1px}
+.conv-row .sel-wrap select{width:100%;padding:8px 2px;border:1px solid #ccc;border-radius:8px;font-size:14px;background:#fff;color:#2c3e50;-webkit-appearance:menulist;appearance:menulist}
+.conv-row .sep{font-size:11px;color:#999;padding:0 1px;flex-shrink:0;white-space:nowrap}
+.conv-btn{padding:8px 10px;background:#2980b9;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;flex-shrink:0;font-weight:bold;margin-left:3px;-webkit-appearance:none;min-height:38px}
+.conv-btn:active{background:#1f6391}
+.lunar-btn{background:#8e44ad}
+.lunar-btn:active{background:#6c3483}
+.leap-row{margin:0 0 10px 54px}
+.leap-row label{font-size:12px;color:#888;display:flex;align-items:center;gap:6px}
+.leap-row input[type=checkbox]{width:16px;height:16px;flex-shrink:0}
+.divider{border:none;border-top:1px solid #f0f0f0;margin:10px 0}
+.asof-box{background:#f8f9fb;border-radius:10px;padding:10px;margin-bottom:10px}
+.asof-title{font-size:12px;color:#888;margin-bottom:8px;font-weight:bold}
+.asof-row{display:flex;align-items:center;gap:2px;width:100%}
+.asof-row .sel-wrap{flex:1;min-width:0;margin:0 1px}
+.asof-row .sel-wrap select{width:100%;padding:7px 2px;border:1px solid #ccc;border-radius:8px;font-size:14px;background:#fff;color:#2c3e50;-webkit-appearance:menulist;appearance:menulist}
+.asof-row .sel-wrap select:disabled{opacity:.4;background:#eee}
+.asof-row .sep{font-size:11px;color:#999;padding:0 1px;flex-shrink:0}
+.asof-today{margin-top:8px;display:flex;align-items:center;gap:6px;font-size:13px;color:#888}
+.asof-today input[type=checkbox]{width:16px;height:16px;flex-shrink:0}
+.res-table{width:100%;border-collapse:collapse;margin-top:10px;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden}
+.res-table td{padding:10px;font-size:13px;vertical-align:middle;border-bottom:1px solid #eee}
+.res-table tr:last-child td{border-bottom:none}
+.res-table td:first-child{background:#f5f5f5;color:#555;font-weight:bold;width:64px;text-align:center;font-size:11px;border-right:1px solid #eee;white-space:nowrap;line-height:1.4}
+.res-table td:last-child{line-height:1.6;font-size:13px}
+.res-table .sub{color:#999;font-size:11px}
+.zodiac-cell{font-size:15px;font-weight:bold;color:#b03a2e;line-height:1.6}
+.element-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;color:#fff;margin-left:5px;vertical-align:middle}
+.asof-note{font-size:11px;color:#aaa;text-align:right;margin-top:5px}
+.agebox{display:flex;gap:8px;margin-top:8px}
+.agebox>div{flex:1;background:#fff;border:1px solid #d5f0e3;border-radius:10px;padding:10px;text-align:center}
+.agebox .num{font-size:28px;font-weight:bold;color:#16a085;line-height:1.1}
+.agebox .lbl{font-size:11px;color:#666;margin-top:3px}
+.placeholder{text-align:center;color:#bbb;padding:22px;font-size:13px;line-height:1.6}
+.err-box{padding:12px;background:#fdf2f0;border:1px solid #f5c6c0;border-radius:10px;color:#c0392b;font-size:12px;margin-top:8px;line-height:1.6}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cal-header button{background:#b03a2e;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:18px;cursor:pointer;min-width:44px;min-height:44px;-webkit-appearance:none}
+.cal-title{font-size:14px;font-weight:bold;text-align:center;line-height:1.3}
+.cal-title small{display:block;font-size:10px;color:#c0392b;font-weight:normal}
+.today-btn{width:100%;margin-bottom:10px;background:#27ae60;color:#fff;border:none;padding:11px;border-radius:10px;font-size:14px;cursor:pointer;-webkit-appearance:none;min-height:44px}
+table.cal{width:100%;border-collapse:collapse;table-layout:fixed}
+th{padding:5px 0;color:#7f8c8d;font-size:11px;line-height:1.2}
+td{border:1px solid #f0f0f0;height:60px;vertical-align:top;padding:2px;text-align:center;cursor:pointer;position:relative;overflow:hidden}
+td.today{background:#fbe9e7;box-shadow:inset 0 0 0 2px #b03a2e}
+td.empty{background:#fafafa;cursor:default}
+td.fest{background:#fff8e1}
+td.newmoon{background:#f0f0f8}
+td.fullmoon{background:#fffde7}
+td.has-entry{background:#e8f8f5}
+td.today.has-entry{background:#fbe9e7}
+.g-day{font-size:15px;font-weight:bold;line-height:1.0}
+.c-day{font-size:9px;color:#c0392b;display:block;line-height:1.0;margin-top:1px}
+.c-day.festival{color:#d35400;font-weight:bold}
+.entry-preview{font-size:8px;color:#16a085;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.1;margin-top:1px;padding:0 2px}
+.moon-icon{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:11px;line-height:1}
+.dot{position:absolute;top:2px;right:3px;width:6px;height:6px;border-radius:50%}
+.dot.tao{background:#8e44ad}
+.dot.trad{background:#e67e22;right:11px}
+.dot.entry{background:#16a085;right:19px}
+.sun{color:#e74c3c}
+.sat{color:#2980b9}
+.detail{margin-top:10px;padding:12px;background:#f8f9fb;border-radius:10px;display:none}
+.detail.show{display:block}
+.detail h3{font-size:13px;color:#b03a2e;margin-bottom:6px}
+.detail .line{font-size:12px;margin:4px 0;line-height:1.5}
+.detail .ens{color:#777;font-size:11px}
+.tag{display:block;font-size:12px;padding:5px 8px;border-radius:8px;margin:4px 0;color:#fff}
+.tag small{display:block;font-size:10px;opacity:.9}
+.tag.trad{background:#e67e22}
+.tag.tao{background:#8e44ad}
+.tag.moon{background:#5d6d7e}
+.entry-section{margin-top:10px;border-top:1px solid #e8e8e8;padding-top:10px}
+.entry-section h4{font-size:12px;color:#16a085;font-weight:bold;margin-bottom:8px}
+.entry-item{display:flex;align-items:flex-start;gap:6px;background:#fff;border:1px solid #c8edd6;border-radius:8px;padding:8px;margin-bottom:6px}
+.entry-item .entry-text{flex:1;font-size:13px;color:#2c3e50;line-height:1.4;word-break:break-word}
+.entry-item .entry-del{background:none;border:none;color:#e74c3c;font-size:18px;cursor:pointer;flex-shrink:0;padding:0 4px;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;-webkit-appearance:none}
+.entry-add-row{display:flex;gap:8px;align-items:flex-start}
+.entry-input{flex:1;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:16px;font-family:-apple-system,"PingFang SC",sans-serif;resize:none;line-height:1.4;-webkit-appearance:none;min-height:44px}
+.entry-input:focus{outline:none;border-color:#16a085}
+.entry-save-btn{padding:10px 12px;background:#16a085;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-weight:bold;min-height:44px;min-width:60px;-webkit-appearance:none}
+.entry-save-btn:active{background:#0e8069}
+.no-entry{font-size:12px;color:#aaa;font-style:italic;padding:4px 0}
+.legend{font-size:11px;color:#7f8c8d;margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:4px}
+.legend i{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+@media(max-width:360px){td{height:54px}.g-day{font-size:13px}.c-day{font-size:8px}.conv-row .lbl{font-size:9px;min-width:44px;padding:5px 3px}.conv-row .sel-wrap select{font-size:13px}.conv-btn{font-size:12px;padding:7px 7px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📅 Date Converter<small>Standard &amp; Chinese Lunar Calendar</small></h1>
+  </div>
+  <div class="toggle-bar">
+    <button class="btn-conv active" onclick="showView('conv')">🔄 Date Converter</button>
+    <button class="btn-cal" onclick="showView('cal')">📆 Calendar</button>
+  </div>
+
+  <div id="viewConv">
+    <div class="panel">
+      <div class="conv-title">Date Converter 日期转换</div>
+      <div class="conv-row">
+        <span class="lbl">Standard<br>公历</span>
+        <div class="sel-wrap"><select id="gYear"></select></div>
+        <span class="sep">Yr</span>
+        <div class="sel-wrap"><select id="gMonth"></select></div>
+        <span class="sep">Mo</span>
+        <div class="sel-wrap"><select id="gDay"></select></div>
+        <span class="sep">Day</span>
+        <button class="conv-btn" onclick="convertG()">Go</button>
+      </div>
+      <div class="conv-row">
+        <span class="lbl lunar-lbl">Lunar<br>农历</span>
+        <div class="sel-wrap"><select id="cYear"></select></div>
+        <span class="sep">年</span>
+        <div class="sel-wrap"><select id="cMonth"></select></div>
+        <span class="sep">月</span>
+        <div class="sel-wrap"><select id="cDay"></select></div>
+        <span class="sep">日</span>
+        <button class="conv-btn lunar-btn" onclick="convertC()">转换</button>
+      </div>
+      <div class="leap-row">
+        <label><input type="checkbox" id="cLeap"> 闰月 Leap month</label>
+      </div>
+      <hr class="divider">
+      <div class="asof-box">
+        <div class="asof-title">📌 Calculate age as of / 计龄基准日</div>
+        <div class="asof-row">
+          <div class="sel-wrap"><select id="aYear"></select></div>
+          <span class="sep">Yr</span>
+          <div class="sel-wrap"><select id="aMonth"></select></div>
+          <span class="sep">Mo</span>
+          <div class="sel-wrap"><select id="aDay"></select></div>
+          <span class="sep">Day</span>
+        </div>
+        <div class="asof-today">
+          <input type="checkbox" id="aToday" checked>
+          <label for="aToday">Use today 使用今天</label>
+        </div>
+      </div>
+      <div id="convResult">
+        <div class="placeholder">Select a date above<br>then tap <b>Go</b> / <b>转换</b> to convert</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewCal" style="display:none">
+    <div class="panel">
+      <button class="today-btn" onclick="jumpToday()">📍 Jump to Today 回到今天</button>
+      <div class="cal-header">
+        <button onclick="changeMonth(-1)">&#8249;</button>
+        <div class="cal-title" id="calTitle"></div>
+        <button onclick="changeMonth(1)">&#8250;</button>
+      </div>
+      <table class="cal">
+        <thead><tr>
+          <th class="sun">Sun</th><th>Mon</th><th>Tue</th>
+          <th>Wed</th><th>Thu</th><th>Fri</th><th class="sat">Sat</th>
+        </tr></thead>
+        <tbody id="calBody"></tbody>
+      </table>
+      <div class="legend">
+        <span><i style="background:#e67e22"></i>Traditional</span>
+        <span><i style="background:#8e44ad"></i>Taoist</span>
+        <span><i style="background:#16a085"></i>My Notes</span>
+        <span><i style="background:#fbe9e7;border:1px solid #b03a2e"></i>Today</span>
+        <span>🌑 New Moon</span><span>🌕 Full Moon</span>
+      </div>
+      <div class="detail" id="detail"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── MOON PHASE ── */
+function julianDay(dt){
+  var y=dt.getFullYear(),mo=dt.getMonth()+1,d=dt.getDate()+0.5;
+  if(mo<=2){y--;mo+=12;}
+  var A=Math.floor(y/100),B=2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(mo+1))+d+B-1524.5;
+}
+function moonPhase(dt){var c=(julianDay(dt)-2451549.5)/29.53058853;return c-Math.floor(c);}
+function phaseDist(p,t){var d=Math.abs(p-t);return d>0.5?1-d:d;}
+var moonCache={};
+function buildMoonMap(y,m){
+  var map={},days=new Date(y,m+1,0).getDate(),bn={dist:9,d:0},bf={dist:9,d:0};
+  for(var d=1;d<=days;d++){
+    var p=moonPhase(new Date(y,m,d));
+    if(phaseDist(p,0)<bn.dist){bn.dist=phaseDist(p,0);bn.d=d;}
+    if(phaseDist(p,0.5)<bf.dist){bf.dist=phaseDist(p,0.5);bf.d=d;}
+  }
+  if(bn.d)map[bn.d]="new";
+  if(bf.d)map[bf.d]="full";
+  return map;
+}
+function moonOf(y,m,d){var k=y+"-"+m;if(!moonCache[k])moonCache[k]=buildMoonMap(y,m);return moonCache[k][d]||null;}
+
+/* ── LOCAL STORAGE NOTES ── */
+var SK="lunarcal_notes";
+function loadNotes(){try{return JSON.parse(localStorage.getItem(SK)||"{}");}catch(e){return {};}}
+function saveNotes(o){try{localStorage.setItem(SK,JSON.stringify(o));}catch(e){}}
+function nk(y,m,d){return y+"-"+(m+1)+"-"+d;}
+function getNotes(y,m,d){return(loadNotes()[nk(y,m,d)]||[]);}
+function addNote(y,m,d,t){var o=loadNotes(),k=nk(y,m,d);if(!o[k])o[k]=[];o[k].push({id:Date.now(),text:t});saveNotes(o);}
+function delNote(y,m,d,id){var o=loadNotes(),k=nk(y,m,d);if(!o[k])return;o[k]=o[k].filter(function(n){return n.id!==id;});if(!o[k].length)delete o[k];saveNotes(o);}
+function hasNote(y,m,d){var o=loadNotes(),k=nk(y,m,d);return !!(o[k]&&o[k].length);}
+
+/* ── LUNAR TABLES ── */
+var LI=[0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b5a0,0x195a6,0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x05ac0,0x0ab60,0x096d5,0x092e0,0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,0x0a2e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a2d0,0x0d150,0x0f252,0x0d520];
+var TG=["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+var DZ=["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+var ZC=["鼠","牛","虎","兔","龙","蛇","马","羊","猴","鸡","狗","猪"];
+var ZE=["Rat","Ox","Tiger","Rabbit","Dragon","Snake","Horse","Goat","Monkey","Rooster","Dog","Pig"];
+var EL=["Wood","Wood","Fire","Fire","Earth","Earth","Metal","Metal","Water","Water"];
+var EC=["木","木","火","火","土","土","金","金","水","水"];
+var EX=["#27ae60","#27ae60","#e74c3c","#e74c3c","#e67e22","#e67e22","#7f8c8d","#7f8c8d","#2980b9","#2980b9"];
+var CM=["正","二","三","四","五","六","七","八","九","十","冬","腊"];
+var CME=["Month 1","Month 2","Month 3","Month 4","Month 5","Month 6","Month 7","Month 8","Month 9","Month 10","Month 11","Month 12"];
+var CD=["初一","初二","初三","初四","初五","初六","初七","初八","初九","初十","十一","十二","十三","十四","十五","十六","十七","十八","十九","二十","廿一","廿二","廿三","廿四","廿五","廿六","廿七","廿八","廿九","三十"];
+var MEN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var MSH=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var LF={"1-1":[{cn:"春节",en:"Spring Festival",t:"trad"},{cn:"弥勒佛圣诞",en:"Maitreya Buddha",t:"tao"}],"1-9":[{cn:"玉皇大帝圣诞",en:"Jade Emperor",t:"tao"}],"1-15":[{cn:"元宵节",en:"Lantern Festival",t:"trad"},{cn:"天官圣诞",en:"Heaven Official",t:"tao"}],"1-19":[{cn:"邱长春真人圣诞",en:"Qiu Changchun",t:"tao"}],"2-2":[{cn:"土地公诞",en:"Earth God",t:"tao"}],"2-15":[{cn:"太上老君圣诞",en:"Laozi",t:"tao"}],"2-19":[{cn:"观音圣诞",en:"Guanyin Birthday",t:"tao"}],"2-21":[{cn:"普贤菩萨圣诞",en:"Samantabhadra",t:"tao"}],"3-3":[{cn:"玄天上帝圣诞",en:"Xuantian Shangdi",t:"tao"}],"3-15":[{cn:"财神圣诞",en:"God of Wealth",t:"tao"}],"3-23":[{cn:"妈祖圣诞",en:"Mazu",t:"tao"}],"4-4":[{cn:"文殊菩萨圣诞",en:"Manjushri",t:"tao"}],"4-8":[{cn:"释迦牟尼佛诞",en:"Buddha Birthday",t:"tao"}],"4-14":[{cn:"吕洞宾圣诞",en:"Lu Dongbin",t:"tao"}],"5-5":[{cn:"端午节",en:"Dragon Boat",t:"trad"}],"5-13":[{cn:"关圣帝君诞",en:"Guan Yu",t:"tao"}],"6-19":[{cn:"观音成道",en:"Guanyin Enlightenment",t:"tao"}],"6-24":[{cn:"关帝圣诞",en:"Guandi",t:"tao"}],"7-7":[{cn:"七夕节",en:"Qixi Festival",t:"trad"}],"7-15":[{cn:"中元节",en:"Ghost Festival",t:"trad"},{cn:"地官圣诞",en:"Earth Official",t:"tao"}],"7-18":[{cn:"西王母圣诞",en:"Queen Mother",t:"tao"}],"7-30":[{cn:"地藏王圣诞",en:"Ksitigarbha",t:"tao"}],"8-3":[{cn:"灶君圣诞",en:"Kitchen God",t:"tao"}],"8-15":[{cn:"中秋节",en:"Mid-Autumn",t:"trad"}],"9-9":[{cn:"重阳节",en:"Double Ninth",t:"trad"},{cn:"斗姆元君",en:"Doumu",t:"tao"}],"9-19":[{cn:"观音出家",en:"Guanyin Renunciation",t:"tao"}],"10-15":[{cn:"水官圣诞",en:"Water Official",t:"tao"}],"11-17":[{cn:"阿弥陀佛圣诞",en:"Amitabha",t:"tao"}],"12-8":[{cn:"腊八节",en:"Laba Festival",t:"trad"}],"12-23":[{cn:"祭灶送神",en:"Kitchen God Ascends",t:"tao"}],"12-30":[{cn:"除夕",en:"New Year Eve",t:"trad"}]};
+
+function lyd(y){var s=348;for(var i=0x8000;i>0x8;i>>=1)s+=(LI[y-1900]&i)?1:0;return s+lld(y);}
+function llm(y){return LI[y-1900]&0xf;}
+function lld(y){return llm(y)?((LI[y-1900]&0x10000)?30:29):0;}
+function lmd(y,m){return(LI[y-1900]&(0x10000>>m))?30:29;}
+var BD=Date.UTC(1900,0,31);
+function s2l(date){
+  var off=Math.floor((Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-BD)/86400000);
+  var y=1900,tmp=0;
+  for(;y<2101&&off>0;y++){tmp=lyd(y);off-=tmp;}
+  if(off<0){off+=tmp;y--;}
+  var lp=llm(y),il=false,m=1;
+  for(;m<13&&off>0;m++){
+    if(lp>0&&m===lp+1&&!il){m--;il=true;tmp=lld(y);}
+    else{tmp=lmd(y,m);}
+    if(il&&m===lp+1)il=false;
+    off-=tmp;
+  }
+  if(off===0&&lp>0&&m===lp+1){if(il){il=false;}else{il=true;m--;}}
+  if(off<0){off+=tmp;m--;}
+  return{year:y,month:m,day:off+1,isLeap:il};
+}
+function l2s(y,m,d,il){
+  if(y<1900||y>2100)return null;
+  var off=0;
+  for(var i=1900;i<y;i++)off+=lyd(i);
+  var lp=llm(y),ord=[];
+  for(var i=1;i<=12;i++){ord.push({m:i,l:false});if(i===lp)ord.push({m:i,l:true});}
+  var tot=0,done=false;
+  for(var ix=0;ix<ord.length;ix++){var o=ord[ix];if(o.m===m&&o.l===il){done=true;break;}tot+=o.l?lld(y):lmd(y,o.m);}
+  if(!done)return null;
+  var mx=il?lld(y):lmd(y,m);
+  if(d<1||d>mx)return null;
+  off+=tot+(d-1);
+  return new Date(BD+off*86400000);
+}
+function gzy(y){var i=(y-4)%60;return TG[i%10]+DZ[i%12]+"年";}
+function zod(y){var i=(y-4)%60,s=i%10;return{cn:ZC[(y-4)%12],en:ZE[(y-4)%12],ec:EC[s],ee:EL[s],ex:EX[s]};}
+function fests(l){
+  if(l.isLeap)return[];
+  var k=l.month+"-"+l.day,r=(LF[k]||[]).slice();
+  if(l.month===12){var lx=lmd(l.year,12);if(l.day===lx&&!LF[k])r=r.concat(LF["12-30"]||[]);}
+  return r;
+}
+function cellLabel(l){
+  var f=fests(l);
+  if(f.length)return{t:f[0].cn.split("·")[0],f:true};
+  if(l.day===1)return{t:(l.isLeap?"闰":"")+CM[l.month-1]+"月",f:false};
+  return{t:CD[l.day-1],f:false};
+}
+function pad(n){return String(n).padStart(2,"0");}
+function donly(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+/* ── AGE ── */
+var LBD=null,LLY=null;
+function aod(){if(document.getElementById("aToday").checked)return new Date();return new Date(+SEL.aYear.value,+SEL.aMonth.value-1,+SEL.aDay.value);}
+function cage(b,r){return Math.max(s2l(r).year-s2l(b).year+1,1);}
+function aoderr(b){
+  var r=aod();
+  if(donly(r)<donly(b))return"⚠️ \"As of\" ("+r.getFullYear()+"-"+pad(r.getMonth()+1)+"-"+pad(r.getDate())+") is before birth date ("+b.getFullYear()+"-"+pad(b.getMonth()+1)+"-"+pad(b.getDate())+"). Please select a later date.";
+  return null;
+}
+function buildResult(gs,ls,le,fc,fe,b,ly){
+  LBD=b;LLY=ly;
+  var z=zod(ly),err=aoderr(b),r=aod();
+  var rs=r.getFullYear()+"-"+pad(r.getMonth()+1)+"-"+pad(r.getDate());
+  var fr=fc?"<tr><td>Festival<br><span class='sub'>节日</span></td><td>"+fc+"<br><span class='sub'>"+fe+"</span></td></tr>":"";
+  var ag=err?"<div class='err-box'>"+err+"</div>"
+    :"<div class='asof-note'>As of: "+rs+"</div><div class='agebox'><div><div class='num'>"+cage(b,r)+"</div><div class='lbl'>虚岁 Chinese Age</div></div></div>";
+  return"<table class='res-table'>"
+    +"<tr><td>Standard<br><span class='sub'>公历</span></td><td>"+gs+"</td></tr>"
+    +"<tr><td>Lunar<br><span class='sub'>农历</span></td><td>"+ls+"<br><span class='sub'>"+le+"</span></td></tr>"
+    +"<tr><td>Zodiac<br><span class='sub'>生肖</span></td><td class='zodiac-cell'>"+z.cn+" "+z.en
+    +"<span class='element-badge' style='background:"+z.ex+"'>"+z.ee+" "+z.ec+"</span></td></tr>"
+    +fr+"</table>"+ag;
+}
+function convertG(){
+  var y=+SEL.gYear.value,m=+SEL.gMonth.value,d=+SEL.gDay.value;
+  var dt=new Date(y,m-1,d),l=s2l(dt),z=zod(l.year),f=fests(l);
+  document.getElementById("convResult").innerHTML=buildResult(
+    MEN[m-1]+" "+d+", "+y,
+    (l.isLeap?"闰":"")+l.year+"年 "+CM[l.month-1]+"月 "+CD[l.day-1],
+    gzy(l.year)+" · Year of the "+z.en+" · "+CME[l.month-1]+" Day "+l.day,
+    f.map(function(x){return x.cn;}).join("、"),f.map(function(x){return x.en;}).join(", "),dt,l.year);
+}
+function convertC(){
+  var y=+SEL.cYear.value,m=+SEL.cMonth.value,d=+SEL.cDay.value,lp=document.getElementById("cLeap").checked;
+  var res=document.getElementById("convResult");
+  if(lp&&llm(y)!==m){res.innerHTML="<div class='err-box'>⚠️ "+y+"年没有闰"+CM[m-1]+"月 / Year "+y+" has no leap "+CME[m-1]+".</div>";LBD=null;return;}
+  var dt=l2s(y,m,d,lp);
+  if(!dt){res.innerHTML="<div class='err-box'>⚠️ 无效农历日期 / Invalid lunar date.</div>";LBD=null;return;}
+  var l=s2l(dt),z=zod(y),f=fests(l),gy=dt.getFullYear(),gm=dt.getMonth()+1,gd=dt.getDate();
+  res.innerHTML=buildResult(
+    MEN[gm-1]+" "+gd+", "+gy,
+    (lp?"闰":"")+y+"年 "+CM[m-1]+"月 "+CD[d-1],
+    gzy(y)+" · Year of the "+z.en+" · "+CME[m-1]+" Day "+d,
+    f.map(function(x){return x.cn;}).join("、"),f.map(function(x){return x.en;}).join(", "),dt,y);
+}
+function recalcAge(){
+  if(!LBD)return;
+  var err=aoderr(LBD),r=aod();
+  var rs=r.getFullYear()+"-"+pad(r.getMonth()+1)+"-"+pad(r.getDate());
+  var ne=document.querySelector(".asof-note"),nu=document.querySelector(".agebox .num");
+  var ab=document.querySelector(".agebox"),eb=document.querySelector("#convResult .err-box");
+  if(err){
+    if(ab){var n=document.querySelector(".asof-note");if(n)n.remove();ab.outerHTML="<div class='err-box'>"+err+"</div>";}
+    else if(eb)eb.innerHTML=err;
+  }else{
+    var a=cage(LBD,r);
+    if(eb)eb.outerHTML="<div class='asof-note'>As of: "+rs+"</div><div class='agebox'><div><div class='num'>"+a+"</div><div class='lbl'>虚岁 Chinese Age</div></div></div>";
+    else{if(ne)ne.textContent="As of: "+rs;if(nu)nu.textContent=a;}
+  }
+}
+function showView(v){
+  document.getElementById("viewConv").style.display=v==="conv"?"block":"none";
+  document.getElementById("viewCal").style.display=v==="cal"?"block":"none";
+  document.querySelector(".btn-conv").classList.toggle("active",v==="conv");
+  document.querySelector(".btn-cal").classList.toggle("active",v==="cal");
+  if(v==="cal")renderCal();
+}
+
+/* ── CALENDAR ── */
+var VD=new Date();
+function renderCal(){
+  var y=VD.getFullYear(),m=VD.getMonth(),mid=s2l(new Date(y,m,15)),z=zod(mid.year);
+  document.getElementById("calTitle").innerHTML=MEN[m]+" "+y
+    +"<small>"+gzy(mid.year)+" · Year of the "+z.en
+    +" <span style='background:"+z.ex+";color:#fff;padding:1px 6px;border-radius:6px;font-size:10px'>"+z.ee+" "+z.ec+"</span></small>";
+  var first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),today=new Date();
+  var html="",cell=0;
+  for(var i=0;i<first;i++){html+="<td class='empty'></td>";cell++;}
+  for(var d=1;d<=days;d++){
+    var dt=new Date(y,m,d),l=s2l(dt),fs=fests(l),lb=cellLabel(l);
+    var moon=moonOf(y,m,d),hn=hasNote(y,m,d),it=dt.toDateString()===today.toDateString();
+    var dots="";
+    if(fs.some(function(f){return f.t==="trad";}))dots+="<span class='dot trad'></span>";
+    if(fs.some(function(f){return f.t==="tao";}))dots+="<span class='dot tao'></span>";
+    if(hn)dots+="<span class='dot entry'></span>";
+    var cls=it?"today"+(hn?" has-entry":""):hn?"has-entry":fs.length?"fest":moon==="new"?"newmoon":moon==="full"?"fullmoon":"";
+    var pv="";
+    if(hn){var ns=getNotes(y,m,d);if(ns.length)pv="<span class='entry-preview'>"+esc(ns[0].text)+"</span>";}
+    var mi=moon==="new"?"<span class='moon-icon'>🌑</span>":moon==="full"?"<span class='moon-icon'>🌕</span>":"";
+    html+="<td class='"+cls+"' onclick='showDetail("+y+","+m+","+d+")'>"
+      +dots+"<span class='g-day'>"+d+"</span>"
+      +"<span class='c-day"+(lb.f?" festival":"")+"'>"+lb.t+"</span>"+pv+mi+"</td>";
+    cell++;if(cell%7===0)html+="</tr><tr>";
+  }
+  document.getElementById("calBody").innerHTML="<tr>"+html+"</tr>";
+}
+function changeMonth(n){VD.setMonth(VD.getMonth()+n);renderCal();}
+function jumpToday(){VD=new Date();renderCal();var t=new Date();showDetail(t.getFullYear(),t.getMonth(),t.getDate());document.getElementById("detail").scrollIntoView({behavior:"smooth",block:"nearest"});}
+
+/* ── DETAIL + NOTES ── */
+var DY,DM,DD;
+function showDetail(y,m,d){DY=y;DM=m;DD=d;renderDetail();document.getElementById("detail").classList.add("show");}
+function renderDetail(){
+  var y=DY,m=DM,d=DD,dt=new Date(y,m,d),l=s2l(dt),fs=fests(l),z=zod(l.year);
+  var moon=moonOf(y,m,d),it=dt.toDateString()===new Date().toDateString();
+  var ed=dt.toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  var tags="";
+  fs.forEach(function(f){tags+="<span class='tag "+f.t+"'>"+f.cn+"<small>"+f.en+"</small></span>";});
+  if(moon==="new")tags+="<span class='tag moon'>🌑 New Moon<small>新月</small></span>";
+  if(moon==="full")tags+="<span class='tag moon'>🌕 Full Moon<small>满月</small></span>";
+  var ns=getNotes(y,m,d),nh="";
+  ns.forEach(function(n){nh+="<div class='entry-item'><span class='entry-text'>"+esc(n.text)+"</span><button class='entry-del' onclick='delEntry("+n.id+")'>✕</button></div>";});
+  if(!ns.length)nh="<div class='no-entry'>No notes yet — add one below</div>";
+  document.getElementById("detail").innerHTML=
+    "<h3>"+MEN[m]+" "+d+", "+y+(it?" 📍 Today":"")+"<br><span class='ens'>"+ed+"</span></h3>"
+    +"<div class='line'><b>Lunar:</b> "+gzy(l.year)+" "+(l.isLeap?"闰":"")+CM[l.month-1]+"月 "+CD[l.day-1]
+    +"<br><span class='ens'>Year of the "+z.en+" <span style='background:"+z.ex+";color:#fff;padding:1px 6px;border-radius:6px;font-size:10px'>"+z.ee+" "+z.ec+"</span> · "+CME[l.month-1]+" Day "+l.day+"</span></div>"
+    +((fs.length||moon)?"<div class='line'><b>Festivals / Phases:</b></div>"+tags:"<div class='line'>No festival today</div>")
+    +"<div class='entry-section'><h4>✏️ My Notes / 我的记事</h4><div class='entry-list'>"+nh+"</div>"
+    +"<div class='entry-add-row'><textarea class='entry-input' id='entryInput' placeholder='Add a note...'></textarea>"
+    +"<button class='entry-save-btn' onclick='saveEntry()'>Save</button></div></div>";
+  var inp=document.getElementById("entryInput");
+  if(inp){
+    inp.addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();saveEntry();}});
+    inp.addEventListener("input",function(){this.style.height="auto";this.style.height=Math.min(this.scrollHeight,120)+"px";});
+  }
+}
+function saveEntry(){
+  var inp=document.getElementById("entryInput");if(!inp)return;
+  var t=inp.value.trim();if(!t)return;
+  inp.value="";inp.style.height="";
+  addNote(DY,DM,DD,t);renderDetail();renderCal();
+}
+function delEntry(id){delNote(DY,DM,DD,id);renderDetail();renderCal();}
+
+/* ── DROPDOWNS — createElement only (iOS Safari safe) ── */
+var SEL={};
+function addOpt(sel,val,txt){var o=document.createElement("option");o.value=val;o.text=txt;sel.appendChild(o);}
+function clearSel(sel){while(sel.options.length)sel.remove(0);}
+function fillNum(sel,a,b){clearSel(sel);for(var i=a;i<=b;i++)addOpt(sel,i,String(i));}
+function fillLabels(sel,arr){clearSel(sel);for(var i=0;i<arr.length;i++)addOpt(sel,arr[i].v,arr[i].t);}
+function gDaysMax(){return new Date(+SEL.gYear.value,+SEL.gMonth.value,0).getDate();}
+function refreshGDay(){
+  var mx=gDaysMax(),pv=+SEL.gDay.value||1;
+  clearSel(SEL.gDay);for(var i=1;i<=mx;i++)addOpt(SEL.gDay,i,String(i));
+  SEL.gDay.value=Math.min(pv,mx);
+}
+function refreshCDay(){
+  var y=+SEL.cYear.value,m=+SEL.cMonth.value,lp=document.getElementById("cLeap").checked;
+  var mx=lp?(llm(y)===m?lld(y):0):lmd(y,m),pv=+SEL.cDay.value||1;
+  clearSel(SEL.cDay);
+  if(mx===0){addOpt(SEL.cDay,1,"—");return;}
+  for(var i=1;i<=mx;i++)addOpt(SEL.cDay,i,CD[i-1]);
+  SEL.cDay.value=Math.min(pv,mx);
+}
+function refreshADay(){
+  var mx=new Date(+SEL.aYear.value,+SEL.aMonth.value,0).getDate(),pv=+SEL.aDay.value||1;
+  clearSel(SEL.aDay);for(var i=1;i<=mx;i++)addOpt(SEL.aDay,i,String(i));
+  SEL.aDay.value=Math.min(pv,mx);
+}
+function applyAToday(){
+  var dis=document.getElementById("aToday").checked;
+  SEL.aYear.disabled=dis;SEL.aMonth.disabled=dis;SEL.aDay.disabled=dis;recalcAge();
+}
+
+function init(){
+  SEL.gYear=document.getElementById("gYear");
+  SEL.gMonth=document.getElementById("gMonth");
+  SEL.gDay=document.getElementById("gDay");
+  SEL.cYear=document.getElementById("cYear");
+  SEL.cMonth=document.getElementById("cMonth");
+  SEL.cDay=document.getElementById("cDay");
+  SEL.aYear=document.getElementById("aYear");
+  SEL.aMonth=document.getElementById("aMonth");
+  SEL.aDay=document.getElementById("aDay");
+
+  /* Year dropdowns */
+  fillNum(SEL.gYear,1900,2100);
+  fillNum(SEL.cYear,1900,2100);
+  fillNum(SEL.aYear,1900,2100);
+
+  /* Month dropdowns */
+  fillLabels(SEL.gMonth,MSH.map(function(s,i){return{v:i+1,t:s};}));
+  fillLabels(SEL.cMonth,CM.map(function(s,i){return{v:i+1,t:s+"月"};}));
+  fillLabels(SEL.aMonth,MSH.map(function(s,i){return{v:i+1,t:s};}));
+
+  /* Set to today */
+  var t=new Date();
+  SEL.gYear.value=t.getFullYear();
+  SEL.gMonth.value=t.getMonth()+1;
+  refreshGDay();
+  SEL.gDay.value=t.getDate();
+
+  SEL.cYear.value=t.getFullYear();
+  SEL.cMonth.value=1;
+  refreshCDay();
+
+  SEL.aYear.value=t.getFullYear();
+  SEL.aMonth.value=t.getMonth()+1;
+  refreshADay();
+  SEL.aDay.value=t.getDate();
+
+  /* Change handlers */
+  SEL.gYear.onchange=refreshGDay;
+  SEL.gMonth.onchange=refreshGDay;
+  SEL.cYear.onchange=refreshCDay;
+  SEL.cMonth.onchange=refreshCDay;
+  document.getElementById("cLeap").onchange=refreshCDay;
+  SEL.aYear.onchange=function(){refreshADay();recalcAge();};
+  SEL.aMonth.onchange=function(){refreshADay();recalcAge();};
+  SEL.aDay.onchange=recalcAge;
+  document.getElementById("aToday").onchange=applyAToday;
+  applyAToday();
+}
+
+document.addEventListener("DOMContentLoaded",init);
+</script>
+</body>
+</html>
